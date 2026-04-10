@@ -51,8 +51,10 @@ backtester.output_summary_stats()
 
 ### engine todo
 
-- [ ] event Architecture
-- [ ]
+- [X] event architecture
+- [X] data handler
+- [ ] portfolio management
+- [ ] execution handler
 
 ### mean reversion pairs trading todo
 
