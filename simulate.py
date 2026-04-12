@@ -9,21 +9,19 @@ from strategies.base import Strategy
 from strategies.randomized import Randomized
 
 
-def run(strategy_id, datapaths, initial_capital):
-    print("Initializing engine components...")
-
-    event_loop: Queue[Event] = Queue()
-    data: DataHandler = CSVHandler(events_queue=event_loop, histories=datapaths)
-    portfolio: Portfolio = Portfolio(data_handler=data, events_queue=event_loop, initial_capital=initial_capital)
-
-    strategy: Strategy
+def get_strategy(strategy_id, data_handler, events_queue):
     match strategy_id:
         case 'MRP':
             # change to mean reversion pair
-            strategy = Randomized(data_handler=data, events_queue=event_loop, symbols=data.symbols)
+            return Randomized(data_handler=data_handler, events_queue=events_queue)
         case _:
-            strategy = Randomized(data_handler=data, events_queue=event_loop, symbols=data.symbols)
+            return Randomized(data_handler=data_handler, events_queue=events_queue)
 
+def run(strategy_id, datapaths, initial_capital):
+    event_loop: Queue[Event] = Queue()
+    data: DataHandler = CSVHandler(events_queue=event_loop, histories=datapaths)
+    portfolio: Portfolio = Portfolio(data_handler=data, events_queue=event_loop, initial_capital=initial_capital)
+    strategy: Strategy = get_strategy(strategy_id=strategy_id, data_handler=data, events_queue=event_loop)
     broker: ExecutionHandler = SimulatedExecution(data_handler=data, events_queue=event_loop)
 
     print("Go For Broke: Starting the backtest event loop...\n")
@@ -39,8 +37,8 @@ def run(strategy_id, datapaths, initial_capital):
 
             match event:
                 case MarketEvent():
-                    strategy.calculate_signals(event)
                     portfolio.update_timeindex(event)
+                    strategy.calculate_signals(event)
                 case SignalEvent():
                     portfolio.generate_signal_order(event)
                 case OrderEvent():
@@ -52,12 +50,12 @@ def run(strategy_id, datapaths, initial_capital):
     print(f"Backtest completed in {round(end_time - start_time, 2)} seconds.")
 
     results_df = portfolio.create_equity_curve_dataframe()
-    final_equity = results_df['capital'].iloc[-1]
-    total_return = ((final_equity - initial_capital) / initial_capital) * 100
+    final_capital = results_df['capital'].iloc[-1]
+    total_return = ((final_capital - initial_capital) / initial_capital) * 100
 
     print("-" * 30)
     print("BACKTEST RESULTS")
     print("-" * 30)
     print(f"Initial Capital : ${initial_capital:,.2f}")
-    print(f"Final Equity    : ${final_equity:,.2f}")
+    print(f"Final Capital   : ${final_capital:,.2f}")
     print(f"Total Return    : {total_return:.2f}%")

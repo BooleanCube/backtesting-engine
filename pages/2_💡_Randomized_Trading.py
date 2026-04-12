@@ -17,9 +17,10 @@ from simulate import run
 
 # --- Run the backtest ---
 strategy_id = 'RANDOM'
-datapaths = [os.path.join('./data/', f) for f in os.listdir('./data/') if f.endswith('.csv')]
+datapaths = [f[:-4] for f in os.listdir('./data/') if f.endswith('.csv')]
 initial_capital = 100000.0
 
 if st.button("Run Backtest"):
     with st.spinner("Running backtest..."):
         run(strategy_id, datapaths, initial_capital)
+

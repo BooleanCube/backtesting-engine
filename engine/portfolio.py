@@ -1,3 +1,4 @@
+import math
 from queue import Queue
 from datetime import datetime as dt
 import pandas as pd
@@ -58,13 +59,7 @@ class Portfolio:
     def update_timeindex(self, market: MarketEvent) -> None:
         latest_datetime = market.datetime
 
-        dh = Holding(
-            positions = self.holdings.positions.copy(),
-            datetime = latest_datetime,
-            cash = self.holdings.cash,
-            commission = self.holdings.commission,
-            capital = self.holdings.capital
-        )
+        self.holdings.capital = self.holdings.cash
 
         for symbol in self.holdings.positions:
             position = self.holdings.positions[symbol]
@@ -72,8 +67,16 @@ class Portfolio:
             if latest_bar is None: continue
 
             market_value = position.quantity * latest_bar.close
-            dh.positions[symbol].value = market_value
-            dh.capital += market_value
+            self.holdings.positions[symbol].value = market_value
+            self.holdings.capital += market_value
+        
+        dh = Holding(
+            positions = self.holdings.positions.copy(),
+            datetime = latest_datetime,
+            cash = self.holdings.cash,
+            commission = self.holdings.commission,
+            capital = self.holdings.capital
+        )
 
         self.history.append(dh)
 
@@ -91,7 +94,9 @@ class Portfolio:
         )
 
         if position is None:
-            order.quantity = self.holdings.cash * signal.strength
+            latest_bar = self.data_handler.get_latest_bar(signal.symbol)
+            if latest_bar is None: return
+            order.quantity = math.floor(self.holdings.cash * signal.strength / latest_bar.close * 100) / 100.0
             if signal.signal_type == 'LONG': order.direction = 'BUY'
             elif signal.signal_type == 'SHORT': order.direction = 'SELL'
             else: return
@@ -104,18 +109,35 @@ class Portfolio:
         self.events_queue.put(order)
 
 
+    def set_default_position(self, symbol):
+        self.holdings.positions.setdefault(symbol, Position(
+            symbol = symbol,
+            security_type = 'EQUITY',
+            order_type = 'MARKET',
+            quantity = 0,
+            value = 0
+        ))
+
+
+    #  TODO: check for sufficient buying power, margin requirements, position limits, etc. before placing order
+    #  TODO: im not sure if short selling is being handled correctly in terms of cash and buying power, need to review and test more
     def fill_order(self, fill: FillEvent) -> None:
         latest_bar = self.data_handler.get_latest_bar(fill.symbol)
-        direction = 1 if fill.direction == 'BUY' else -1
-
         if latest_bar is None: return
+        direction = 1 if fill.direction == 'BUY' else -1
 
         quantity = direction * fill.quantity
         cost = quantity * latest_bar.close
+        self.set_default_position(fill.symbol)
         self.holdings.positions[fill.symbol].quantity += quantity
         self.holdings.positions[fill.symbol].value += cost
         self.holdings.commission += fill.commission
         self.holdings.cash -= (cost + fill.commission)
+
+        # negligible threshold to account for floating point errors when determining if position is effectively closed
+        if self.holdings.positions[fill.symbol].quantity < 1e-6:
+            self.holdings.cash += self.holdings.positions[fill.symbol].value
+            del self.holdings.positions[fill.symbol]
 
 
     def create_equity_curve_dataframe(self):
@@ -125,5 +147,4 @@ class Portfolio:
         curve['returns'] = curve['capital'].pct_change()
         curve['equity_curve'] = (1.0 + curve['returns']).cumprod()
         return curve
-
 

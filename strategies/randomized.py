@@ -1,4 +1,8 @@
 from numpy import random
+from queue import Queue
+from typing import List, Dict
+
+from engine.events import Event
 from engine.data import DataHandler
 from engine.events import MarketEvent, SignalEvent
 from strategies.base import Strategy
@@ -9,11 +13,11 @@ class Randomized(Strategy):
     A very basic testing strategy that randomly goes LONG, SHORT, or does nothing.
     Created to test simulation logic and handler functioning.
     """
-    def __init__(self, data_handler, events_queue, symbols):
+    def __init__(self, data_handler, events_queue):
         self.data_handler: DataHandler = data_handler
-        self.events_queue = events_queue
-        self.symbols = symbols
-        self.invested = {symbol: 0 for symbol in self.symbols}
+        self.events_queue: Queue[Event] = events_queue
+        self.symbols: List[str] = data_handler.symbols
+        self.invested: Dict[str, int] = {symbol: 0 for symbol in self.symbols}
 
     def calculate_signals(self, event: MarketEvent):
         for symbol in self.symbols:
@@ -29,7 +33,7 @@ class Randomized(Strategy):
                         symbol = symbol,
                         datetime = timestamp,
                         signal_type = 'LONG',
-                        strength = 0.05
+                        strength = 0.50
                     )
                     self.events_queue.put(signal)
                     self.invested[symbol] = 1

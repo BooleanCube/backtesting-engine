@@ -7,7 +7,7 @@ from queue import Queue
 from datetime import datetime as dt
 
 
-DATA_DIR = "../data/"
+DATA_DIR = "./data/"
 
 class Bar:
     def __init__(self, datetime, open, high, low, close, volume):
