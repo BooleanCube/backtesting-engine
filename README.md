@@ -21,40 +21,20 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 
 ## 🛣️ Roadmap
 
-* [x] Basic Event Queue implementation.
-* [x] Historical CSV Data Handler for equities.
-* [x] Base Strategy class and Pairs Trading implementation.
-* [ ] Slippage and Commission modeling in the Execution Handler.
+* [X] Basic Event Queue implementation.
+* [X] Historical CSV Data Handler for equities.
+* [ ] Base Strategy class and Pairs Trading implementation.
+* [X] Slippage and Commission modeling in the Execution Handler.
 * [ ] Performance metrics tear-sheet (Sharpe, Max Drawdown, Calmar).
 * [ ] Expand Asset Classes: Add support for Derivatives (Futures/Options) including margin tracking and contract multipliers.
 * [ ] Parameter optimization grid search.
-
-## 💻 Usage (Placeholder)
-
-```python
-from engine.data import CSVDataHandler
-from engine.portfolio import Portfolio
-from engine.execution import SimulatedExecution
-from strategies.pairs_trade import MeanReversionPairs
-
-# Initialize components
-data = CSVDataHandler(data_dir="data/", symbols=["PEP", "KO"])
-strategy = MeanReversionPairs(lookback_window=20, z_score_threshold=2.0)
-portfolio = Portfolio(initial_capital=100000.0)
-broker = SimulatedExecution(commission=0.001)
-
-# Run Engine
-backtester = BacktestEngine(data, strategy, portfolio, broker)
-backtester.run()
-backtester.output_summary_stats()
-```
 
 ### engine todo
 
 - [X] event architecture
 - [X] data handler
-- [ ] portfolio management
-- [ ] execution handler
+- [X] portfolio management
+- [X] execution handler
 
 ### mean reversion pairs trading todo
 

@@ -4,7 +4,7 @@ from engine.events import MarketEvent, SignalEvent
 from strategies.base import Strategy
 
 
-class Random(Strategy):
+class Randomized(Strategy):
     """
     A very basic testing strategy that randomly goes LONG, SHORT, or does nothing.
     Created to test simulation logic and handler functioning.

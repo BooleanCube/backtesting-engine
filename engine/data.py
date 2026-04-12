@@ -88,7 +88,7 @@ class CSVHandler(DataHandler):
         for symbol in self.symbols:
             sym_data = row[symbol]
 
-            if any(pd.isna(sym_data['Close'])):
+            if not pd.isna(sym_data['Close']):
                 bar = Bar(
                     datetime = timestamp,
                     open = sym_data['Open'],

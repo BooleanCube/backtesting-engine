@@ -10,6 +10,3 @@ with open('README.md', 'r') as file:
     readme_content = file.read()
 
 st.markdown(readme_content)
-
-st.sidebar.success("Select a strategy above.")
-

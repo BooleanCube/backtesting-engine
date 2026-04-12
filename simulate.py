@@ -6,7 +6,7 @@ from engine.data import CSVHandler, DataHandler
 from engine.execution import ExecutionHandler, SimulatedExecution
 from engine.portfolio import Portfolio
 from strategies.base import Strategy
-from strategies.random import Random
+from strategies.random import Randomized
 
 
 def run(strategy_id, datapaths, initial_capital):
@@ -20,9 +20,9 @@ def run(strategy_id, datapaths, initial_capital):
     match strategy_id:
         case 'MRP':
             # change to mean reversion pair
-            strategy = Random(data_handler=data, events_queue=event_loop, symbols=data.symbols)
+            strategy = Randomized(data_handler=data, events_queue=event_loop, symbols=data.symbols)
         case _:
-            strategy = Random(data_handler=data, events_queue=event_loop, symbols=data.symbols)
+            strategy = Randomized(data_handler=data, events_queue=event_loop, symbols=data.symbols)
 
     broker: ExecutionHandler = SimulatedExecution(data_handler=data, events_queue=event_loop)
 
