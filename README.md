@@ -23,18 +23,12 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 
 * [X] Basic Event Queue implementation.
 * [X] Historical CSV Data Handler for equities.
+* [ ] Test backtesting engine simulation
 * [ ] Base Strategy class and Pairs Trading implementation.
-* [X] Slippage and Commission modeling in the Execution Handler.
+* [ ] Slippage and Commission modeling in the Execution Handler.
 * [ ] Performance metrics tear-sheet (Sharpe, Max Drawdown, Calmar).
 * [ ] Expand Asset Classes: Add support for Derivatives (Futures/Options) including margin tracking and contract multipliers.
 * [ ] Parameter optimization grid search.
-
-### engine todo
-
-- [X] event architecture
-- [X] data handler
-- [X] portfolio management
-- [X] execution handler
 
 ### mean reversion pairs trading todo
 

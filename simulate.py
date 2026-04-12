@@ -6,7 +6,7 @@ from engine.data import CSVHandler, DataHandler
 from engine.execution import ExecutionHandler, SimulatedExecution
 from engine.portfolio import Portfolio
 from strategies.base import Strategy
-from strategies.random import Randomized
+from strategies.randomized import Randomized
 
 
 def run(strategy_id, datapaths, initial_capital):

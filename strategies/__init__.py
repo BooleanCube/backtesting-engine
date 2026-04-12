@@ -5,5 +5,5 @@ Exposes the base strategy class and individual trading algorithms.
 """
 
 from .base import Strategy
-from .random import Randomized
+from .randomized import Randomized
 # from .mean_reversion import MeanReversionPairs
