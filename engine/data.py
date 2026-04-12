@@ -48,6 +48,7 @@ class CSVHandler(DataHandler):
         self.symbol_data: Dict[str, pd.DataFrame] = {}
         self.latest_symbol_data: Dict[str, List[Bar]] = {}
 
+        self.terminate_simulation = False
         self._open_convert_csv_files()
 
     def _open_convert_csv_files(self) -> None:
@@ -77,6 +78,7 @@ class CSVHandler(DataHandler):
             timestamp, row = next(self.bar_stream)
             return timestamp, row
         except StopIteration:
+            self.terminate_simulation = True
             return None, None
 
     def update_bars(self) -> None:
@@ -97,7 +99,7 @@ class CSVHandler(DataHandler):
                 )
                 self.latest_symbol_data[symbol].append(bar)
 
-        self.events_queue.put(MarketEvent())
+        self.events_queue.put(MarketEvent(timestamp))
 
     def get_latest_bar(self, symbol) -> Bar | None:
         try:

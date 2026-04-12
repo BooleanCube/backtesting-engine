@@ -10,15 +10,17 @@ class EventType(StrEnum):
     FILL = 'FILL'
 
 class Event:
-    pass
+    def __init__(self):
+        self.event_type: EventType
 
 class MarketEvent(Event):
-    def __init__(self):
-        self.type: EventType = EventType.MARKET
+    def __init__(self, datetime):
+        self.event_type: EventType = EventType.MARKET
+        self.datetime: dt = datetime
 
 class SignalEvent(Event):
     def __init__(self, strategy_id, symbol, datetime, signal_type, strength=1.0):
-        self.type: EventType = EventType.SIGNAL
+        self.event_type: EventType = EventType.SIGNAL
         self.strategy_id: str = strategy_id
         self.symbol: str = symbol
         self.datetime: dt = datetime
@@ -27,7 +29,7 @@ class SignalEvent(Event):
 
 class OrderEvent(Event):
     def __init__(self, symbol, security_type, order_type, quantity, direction):
-        self.type: EventType = EventType.ORDER
+        self.event_type: EventType = EventType.ORDER
         self.symbol: str = symbol
         self.security_type: Literal['EQUITY', 'BOND', 'OPTION', 'FUTURE'] = security_type
         self.order_type: Literal['MARKET', 'LIMIT'] = order_type
@@ -40,7 +42,7 @@ class OrderEvent(Event):
 
 class FillEvent(Event):
     def __init__(self, timeindex, symbol, exchange, quantity, direction, fill_cost, commission=None):
-        self.type: EventType = EventType.FILL
+        self.event_type: EventType = EventType.FILL
         self.timeindex: dt = timeindex
         self.symbol: str = symbol
         self.exchange: str = exchange
