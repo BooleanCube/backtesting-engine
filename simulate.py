@@ -7,6 +7,7 @@ from engine.execution import ExecutionHandler, SimulatedExecution
 from engine.portfolio import Portfolio
 from strategies.base import Strategy
 from strategies.randomized import Randomized
+from utils.performance import calculate_calmar_ratio, calculate_profit_factor, calculate_roi, calculate_sharpe_ratio, calculate_sortino_ratio
 
 
 def get_strategy(strategy_id, data_handler, events_queue):
@@ -19,7 +20,7 @@ def get_strategy(strategy_id, data_handler, events_queue):
 
 def run(strategy_id, datapaths, initial_capital):
     event_loop: Queue[Event] = Queue()
-    data: DataHandler = CSVHandler(events_queue=event_loop, histories=datapaths)
+    data: DataHandler = CSVHandler(events_queue=event_loop, selected_histories=datapaths)
     portfolio: Portfolio = Portfolio(data_handler=data, events_queue=event_loop, initial_capital=initial_capital)
     strategy: Strategy = get_strategy(strategy_id=strategy_id, data_handler=data, events_queue=event_loop)
     broker: ExecutionHandler = SimulatedExecution(data_handler=data, events_queue=event_loop)
@@ -49,13 +50,19 @@ def run(strategy_id, datapaths, initial_capital):
     end_time = time.time()
     print(f"Backtest completed in {round(end_time - start_time, 2)} seconds.")
 
-    results_df = portfolio.create_equity_curve_dataframe()
+    results_df = portfolio.get_results_dataframe()
     final_capital = results_df['capital'].iloc[-1]
-    total_return = ((final_capital - initial_capital) / initial_capital) * 100
+    roi = calculate_roi(initial_capital, final_capital)
+    sharpe_ratio = calculate_sharpe_ratio(results_df['returns'], interval=data.interval)
+    sortino_ratio = calculate_sortino_ratio(results_df['returns'], interval=data.interval)
+    calmar_ratio = calculate_calmar_ratio(results_df['equity_curve'], interval=data.interval)
+    profit_factor = calculate_profit_factor(results_df['pointly_pnl'])
 
-    print("-" * 30)
-    print("BACKTEST RESULTS")
-    print("-" * 30)
-    print(f"Initial Capital : ${initial_capital:,.2f}")
-    print(f"Final Capital   : ${final_capital:,.2f}")
-    print(f"Total Return    : {total_return:.2f}%")
+    return {
+        'final_capital': final_capital,
+        'roi': roi,
+        'sharpe_ratio': sharpe_ratio,
+        'sortino_ratio': sortino_ratio,
+        'calmar_ratio': calmar_ratio,
+        'profit_factor': profit_factor
+    }

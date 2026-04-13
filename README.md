@@ -23,12 +23,21 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 
 * [X] Basic Event Queue implementation.
 * [X] Historical CSV Data Handler for equities.
-* [ ] Test backtesting engine simulation
-* [ ] Base Strategy class and Pairs Trading implementation.
+* [X] Test backtesting engine simulation.
+* [ ] Performance metrics tear-sheet (sharpe ratio, max drawdown, calmar, profit factor, sortino ratio, win rate, roi, watch video for more).
+* [ ] Mean Reversion Pairs Trading Strategy implementation.
 * [ ] Slippage and Commission modeling in the Execution Handler.
-* [ ] Performance metrics tear-sheet (Sharpe, Max Drawdown, Calmar).
 * [ ] Expand Asset Classes: Add support for Derivatives (Futures/Options) including margin tracking and contract multipliers.
+* [ ] Handle other types of orders (stop loss, limit, etc.)
 * [ ] Parameter optimization grid search.
+
+### todo
+
+- [ ] study sharpe ratio, and other quant metrics, and implement
+- [X] fix up randomized trading page in terms of data selection and visualization
+- [ ] study up and fix portfolio management for short selling
+- [ ] fix up simulation results to measure quant metrics
+- [ ] start working on mean reversion pair trading strategy
 
 ### mean reversion pairs trading todo
 

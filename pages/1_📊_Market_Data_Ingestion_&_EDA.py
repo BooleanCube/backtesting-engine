@@ -8,6 +8,8 @@ import os
 from datetime import datetime, time
 import pytz
 
+from utils import INTERVALS, INTRADAY_INTERVALS, INTERDAY_INTERVALS, DATA_DIR
+
 # --- App Configuration ---
 st.set_page_config(page_title="Market Data Ingestion & EDA", layout="wide")
 st.title("📈 Market Data Ingestion & EDA")
@@ -30,12 +32,11 @@ with col2:
 
 interval = st.sidebar.selectbox(
     "Interval",
-    options=["1m", "1h", "1d", "1wk", "1mo"],
-    index=2,
-    help="Choose a smaller interval (1m, 1h) for intraday data."
+    options=INTERVALS,
+    index=7,
 )
 
-save_dir = "./data/"
+save_dir = DATA_DIR
 
 # --- Fetch Data Function ---
 @st.cache_data(ttl=3600)
@@ -57,7 +58,7 @@ def fetch_data(symbol, start, end, tf):
     df = df[expected_cols]
     df.index.name = 'Date'
     
-    if tf in ['1d', '1wk', '1mo']:
+    if tf in INTERDAY_INTERVALS:
         if df.index.tz is not None:
             df.index = df.index.tz_localize(None)
     else:
@@ -95,29 +96,27 @@ if st.session_state['data_fetched']:
     start_dt_est = eastern.localize(datetime.combine(start_date, start_time))
     end_dt_est = eastern.localize(datetime.combine(end_date, end_time))
 
-    interval_offsets = {"1m": pd.Timedelta(minutes=1), "1h": pd.Timedelta(hours=1)}
-    if interval in interval_offsets:
-        yf_start_dt_est = start_dt_est - interval_offsets[interval]
-    else:
-        yf_start_dt_est = start_dt_est
+    interval_offsets = {"1m": pd.Timedelta(minutes=1), "2m": pd.Timedelta(minutes=2), "5m": pd.Timedelta(minutes=5), "15m": pd.Timedelta(minutes=15), "30m": pd.Timedelta(minutes=30), "1h": pd.Timedelta(hours=1), "4h": pd.Timedelta(hours=4)}
+    if interval in interval_offsets: yf_start_dt_est = start_dt_est - interval_offsets[interval]
+    else: yf_start_dt_est = start_dt_est
         
     start_dt_utc = yf_start_dt_est.astimezone(pytz.UTC)
     end_dt_utc = end_dt_est.astimezone(pytz.UTC)
 
     market_open = time(9, 30)
     market_close = time(16, 0)
-    if interval in ["1m", "1h"] and ((start_time < market_open) or (end_time > market_close)):
+    if interval in INTRADAY_INTERVALS and ((start_time < market_open) or (end_time > market_close)):
         st.warning("You selected a time outside regular NASDAQ trading hours (09:30–16:00 EST). Data may be missing or unavailable.")
 
     with st.spinner(f"Fetching data for {ticker}..."):
         # For daily data, we just pass the naive dates to yfinance
-        if interval in ['1d', '1wk', '1mo']:
+        if interval in INTERDAY_INTERVALS:
             df = fetch_data(ticker, start_date, end_date + pd.Timedelta(days=1), interval)
         else:
             df = fetch_data(ticker, start_dt_utc, end_dt_utc, interval)
 
     if df is not None:
-        if interval in ['1d', '1wk', '1mo']:
+        if interval in INTERDAY_INTERVALS:
             mask = (df.index >= pd.to_datetime(start_date)) & (df.index <= pd.to_datetime(end_date))
         else:
             mask = (df.index >= start_dt_est) & (df.index <= end_dt_est)
@@ -126,10 +125,12 @@ if st.session_state['data_fetched']:
         st.success(f"Successfully fetched {len(df)} rows for {ticker}.")
 
         # --- Save Functionality ---
-        if interval in ['1d', '1wk', '1mo']:
-            filename = f"{ticker}_{start_date.strftime('%Y-%m-%d')}_{end_date.strftime('%Y-%m-%d')}.csv"
-        else:
-            filename = f"{ticker}_{start_dt_est.strftime('%Y-%m-%d_%H-%M')}_{end_dt_est.strftime('%Y-%m-%d_%H-%M')}_EST.csv"
+        # Extract the exact start and end timestamps from the fetched data index
+        actual_start = df.index[0].strftime('%Y%m%d%H%M')
+        actual_end = df.index[-1].strftime('%Y%m%d%H%M')
+        
+        # Standardized naming convention: Ticker_Interval_Start_End.csv
+        filename = f"{ticker}_{interval}_{actual_start}_{actual_end}.csv"
             
         filepath = os.path.join(save_dir, filename)
 

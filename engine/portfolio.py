@@ -17,6 +17,7 @@ class Position:
         self.order_type: Literal['MARKET', 'LIMIT'] = order_type
         self.quantity: float = quantity # negative for short, positive for long
         self.value: float = value
+        self.cost: float = value
 
 
 class Holding:
@@ -55,6 +56,8 @@ class Portfolio:
         )
         self.history: List[Holding] = [self.holdings]
 
+        self.winning_trades, self.total_trades = 0, 0
+
 
     def update_timeindex(self, market: MarketEvent) -> None:
         latest_datetime = market.datetime
@@ -67,7 +70,7 @@ class Portfolio:
             if latest_bar is None: continue
 
             market_value = position.quantity * latest_bar.close
-            self.holdings.positions[symbol].value = market_value
+            position.value = market_value
             self.holdings.capital += market_value
         
         dh = Holding(
@@ -110,7 +113,7 @@ class Portfolio:
 
 
     def set_default_position(self, symbol):
-        self.holdings.positions.setdefault(symbol, Position(
+        return self.holdings.positions.setdefault(symbol, Position(
             symbol = symbol,
             security_type = 'EQUITY',
             order_type = 'MARKET',
@@ -128,23 +131,31 @@ class Portfolio:
 
         quantity = direction * fill.quantity
         cost = quantity * latest_bar.close
-        self.set_default_position(fill.symbol)
-        self.holdings.positions[fill.symbol].quantity += quantity
-        self.holdings.positions[fill.symbol].value += cost
+        position = self.set_default_position(fill.symbol)
+        position.quantity += quantity
+        position.value += cost
+        position.cost += cost
         self.holdings.commission += fill.commission
         self.holdings.cash -= (cost + fill.commission)
+        self.holdings.capital -= fill.commission
 
-        # negligible threshold to account for floating point errors when determining if position is effectively closed
-        if self.holdings.positions[fill.symbol].quantity < 1e-6:
-            self.holdings.cash += self.holdings.positions[fill.symbol].value
+        # exiting position
+        if abs(position.quantity) < 1e-6:
+            self.total_trades += 1
+            if position.cost < position.value: self.winning_trades += 1
+
+            self.holdings.cash += position.value
             del self.holdings.positions[fill.symbol]
 
 
-    def create_equity_curve_dataframe(self):
+    def get_results_dataframe(self):
         history = [holdings.to_dict() for holdings in self.history]
-        curve = pd.DataFrame(history)
-        curve.set_index('datetime', inplace = True)
-        curve['returns'] = curve['capital'].pct_change()
-        curve['equity_curve'] = (1.0 + curve['returns']).cumprod()
-        return curve
+        result = pd.DataFrame(history)
+        result.set_index('datetime', inplace = True)
+        result['returns'] = result['capital'].pct_change()
+        result['equity_curve'] = (1.0 + result['returns']).cumprod()
+        result['total_pnl'] = result['capital'] - result['capital'].iloc[0]
+        result['pointly_pnl'] = result['total_pnl'].diff().fillna(0)
+        result['win_rate'] = self.winning_trades / self.total_trades if self.total_trades > 0 else 0.0
+        return result
 
