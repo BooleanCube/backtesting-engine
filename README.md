@@ -24,7 +24,7 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 * [X] Basic Event Queue implementation.
 * [X] Historical CSV Data Handler for equities.
 * [X] Test backtesting engine simulation.
-* [ ] Performance metrics tear-sheet (sharpe ratio, max drawdown, calmar, profit factor, sortino ratio, win rate, roi, watch video for more).
+* [X] Performance metrics tear-sheet (sharpe ratio, max drawdown, calmar, profit factor, sortino ratio, win rate, roi, watch video for more).
 * [ ] Mean Reversion Pairs Trading Strategy implementation.
 * [ ] Slippage and Commission modeling in the Execution Handler.
 * [ ] Expand Asset Classes: Add support for Derivatives (Futures/Options) including margin tracking and contract multipliers.
@@ -33,11 +33,28 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 
 ### todo
 
-- [ ] study sharpe ratio, and other quant metrics, and implement
+- [X] fix calmar ratio, drawdowns, and performance.py
 - [X] fix up randomized trading page in terms of data selection and visualization
 - [ ] study up and fix portfolio management for short selling
-- [ ] fix up simulation results to measure quant metrics
+- [ ] study up and fix the entire execution handler
+- [X] fix up simulation results to measure quant metrics
+- [ ] store trades info, signaled order vs filled order data, gather info for each ticker
+- [ ] start displaying results on streamlit (review pdf from yt video), write down every plot, info u want displayed for planning
 - [ ] start working on mean reversion pair trading strategy
+- [ ] implement limit orders, bonds, options, futures
+
+### outputs planning
+
+- simulation runtime
+- strategy metrics: annual return, cumulative return, sharpe, sortino, calmar, VaR, max dd, kurtosis, skew (for each ticker and net)
+- positions entered, exited, opened, closed, profitable trades, and win rate (for each ticker and net)
+- drawdowns, durations, max drawdown, max duration
+- equity curve for cumulative returns (for each ticker and net)
+- rolling sharpe (for each ticker and net)
+- enters/exits on trades (graphed over prices, spread, and z-score)
+- total pnl and point pnl distribution and line graphs
+- log returns distribution and line graphs
+- display on streamlit and add option to download generated pdf report
 
 ### mean reversion pairs trading todo
 

@@ -7,7 +7,8 @@ from engine.execution import ExecutionHandler, SimulatedExecution
 from engine.portfolio import Portfolio
 from strategies.base import Strategy
 from strategies.randomized import Randomized
-from utils.performance import calculate_calmar_ratio, calculate_profit_factor, calculate_roi, calculate_sharpe_ratio, calculate_sortino_ratio
+from utils.performance import calculate_calmar_ratio, calculate_drawdowns, calculate_profit_factor, \
+    calculate_roi, calculate_sharpe_ratio, calculate_sortino_ratio
 
 
 def get_strategy(strategy_id, data_handler, events_queue):
@@ -18,9 +19,9 @@ def get_strategy(strategy_id, data_handler, events_queue):
         case _:
             return Randomized(data_handler=data_handler, events_queue=events_queue)
 
-def run(strategy_id, datapaths, initial_capital):
+def run(strategy_id, selected_data, initial_capital):
     event_loop: Queue[Event] = Queue()
-    data: DataHandler = CSVHandler(events_queue=event_loop, selected_histories=datapaths)
+    data: DataHandler = CSVHandler(events_queue=event_loop, selected_histories=selected_data)
     portfolio: Portfolio = Portfolio(data_handler=data, events_queue=event_loop, initial_capital=initial_capital)
     strategy: Strategy = get_strategy(strategy_id=strategy_id, data_handler=data, events_queue=event_loop)
     broker: ExecutionHandler = SimulatedExecution(data_handler=data, events_queue=event_loop)
@@ -55,8 +56,10 @@ def run(strategy_id, datapaths, initial_capital):
     roi = calculate_roi(initial_capital, final_capital)
     sharpe_ratio = calculate_sharpe_ratio(results_df['returns'], interval=data.interval)
     sortino_ratio = calculate_sortino_ratio(results_df['returns'], interval=data.interval)
-    calmar_ratio = calculate_calmar_ratio(results_df['equity_curve'], interval=data.interval)
-    profit_factor = calculate_profit_factor(results_df['pointly_pnl'])
+    calmar_ratio = calculate_calmar_ratio(results_df['capital'], interval=data.interval)
+    profit_factor = calculate_profit_factor(results_df['periodic_pnl'])
+    drawdowns, max_drawdown = calculate_drawdowns(results_df['capital'])
+    win_rate = results_df['win_rate'].iloc[-1]
 
     return {
         'final_capital': final_capital,
@@ -64,5 +67,7 @@ def run(strategy_id, datapaths, initial_capital):
         'sharpe_ratio': sharpe_ratio,
         'sortino_ratio': sortino_ratio,
         'calmar_ratio': calmar_ratio,
-        'profit_factor': profit_factor
+        'profit_factor': profit_factor,
+        'max_drawdown': max_drawdown,
+        'win_rate': win_rate
     }

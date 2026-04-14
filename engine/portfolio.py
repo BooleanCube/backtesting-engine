@@ -1,3 +1,5 @@
+import copy
+import numpy as np
 import math
 from queue import Queue
 from datetime import datetime as dt
@@ -54,7 +56,7 @@ class Portfolio:
             commission = 0.0,
             capital = initial_capital
         )
-        self.history: List[Holding] = [self.holdings]
+        self.history: List[Holding] = [copy.deepcopy(self.holdings)]
 
         self.winning_trades, self.total_trades = 0, 0
 
@@ -74,7 +76,7 @@ class Portfolio:
             self.holdings.capital += market_value
         
         dh = Holding(
-            positions = self.holdings.positions.copy(),
+            positions = copy.deepcopy(self.holdings.positions),
             datetime = latest_datetime,
             cash = self.holdings.cash,
             commission = self.holdings.commission,
@@ -153,9 +155,10 @@ class Portfolio:
         result = pd.DataFrame(history)
         result.set_index('datetime', inplace = True)
         result['returns'] = result['capital'].pct_change()
+        result['log_returns'] = np.log(result['capital']).diff()
         result['equity_curve'] = (1.0 + result['returns']).cumprod()
         result['total_pnl'] = result['capital'] - result['capital'].iloc[0]
-        result['pointly_pnl'] = result['total_pnl'].diff().fillna(0)
+        result['periodic_pnl'] = result['total_pnl'].diff().fillna(0)
         result['win_rate'] = self.winning_trades / self.total_trades if self.total_trades > 0 else 0.0
         return result
 

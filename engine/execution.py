@@ -11,6 +11,10 @@ class ExecutionHandler(ABC):
         raise NotImplementedError("Should implement execute_order()")
 
 
+#  TODO: a lot of studying to be done to accurately simulate slippage, partial fills, market impact, etc.
+#        also need to implement limit orders and stop orders.
+#        also need to figure out available liquidity of the market for partial fills and maybe splitting orders
+#        into smaller chunks throughout the day like voloridge does.
 class SimulatedExecution(ExecutionHandler):
     def __init__(self, data_handler, events_queue):
         self.data_handler: DataHandler = data_handler
@@ -19,7 +23,16 @@ class SimulatedExecution(ExecutionHandler):
 
     def execute_order(self, order: OrderEvent) -> None:
         latest_bar = self.data_handler.get_latest_bar(order.symbol)
-        if latest_bar is None: return
+        if latest_bar is None:
+            print(f"No market data available for {order.symbol}. Order cannot be executed.")
+            return
+
+        # # Simulate partial fills based on available liquidity
+        # available_liquidity = latest_bar.volume * 0.1  # Assume 10% of volume is available for the order
+        # fill_quantity = min(order.quantity, available_liquidity)
+
+        # if fill_quantity < order.quantity:
+        #     print(f"Partial fill for {order.symbol}: {fill_quantity}/{order.quantity} shares filled.")
 
         fill = FillEvent(
             timeindex = latest_bar.datetime,

@@ -27,7 +27,7 @@ class Randomized(Strategy):
                 timestamp = bars[0].datetime
                 random_signal = random.random()
 
-                if random_signal > 0.90 and not self.invested[symbol]:
+                if random_signal > 0.75:
                     signal = SignalEvent(
                         strategy_id = 'RANDOM',
                         symbol = symbol,

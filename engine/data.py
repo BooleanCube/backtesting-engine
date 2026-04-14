@@ -58,22 +58,36 @@ class CSVHandler(DataHandler):
 
         # 1. Load all files and group them by their base symbol
         for history in self.histories:
-            symbol = history.split("_")[0]
-            filepath = os.path.join(DATA_DIR, f"{history}.csv")
-            df = pd.read_csv(
-                filepath,
-                parse_dates=True,
-                index_col=0
-            )
-            df.index = pd.to_datetime(df.index, utc=True)
-            temp_symbol_data[symbol].append(df)
+            try:
+                symbol = history.split("_")[0]
+                filepath = os.path.join(DATA_DIR, f"{history}.csv")
+
+                if not os.path.exists(filepath):
+                    print(f"File not found: {filepath}")
+                    continue
+
+                df = pd.read_csv(
+                    filepath,
+                    parse_dates=True,
+                    index_col=0
+                )
+
+                if df.empty or not all(col in df.columns for col in ['Open', 'High', 'Low', 'Close', 'Volume']):
+                    print(f"Malformed or empty data in file: {filepath}")
+                    continue
+
+                df.index = pd.to_datetime(df.index, utc=True)
+                temp_symbol_data[symbol].append(df)
+
+            except Exception as e:
+                print(f"Error processing {history}: {e}")
 
         # 2. Combine, sort, and clean the data for each symbol
         for symbol in temp_symbol_data:
-            combined_df = pd.concat(temp_symbol_data[symbol])
+            combined_df = pd.concat(temp_symbol_data[symbol], ignore_index=False)
             combined_df.sort_index(inplace=True)
             combined_df = combined_df[~combined_df.index.duplicated(keep='first')]
-            
+
             self.symbol_data[symbol] = combined_df
             self.latest_symbol_data[symbol] = []
 
