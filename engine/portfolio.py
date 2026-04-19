@@ -58,7 +58,7 @@ class Portfolio:
         )
         self.history: List[Holding] = [copy.deepcopy(self.holdings)]
 
-        self.winning_trades, self.total_trades = 0, 0
+        self.winning_trades, self.open_trades, self.closed_trades = 0, 0, 0
 
 
     def update_timeindex(self, market: MarketEvent) -> None:
@@ -115,6 +115,8 @@ class Portfolio:
 
 
     def set_default_position(self, symbol):
+        if symbol not in self.holdings.positions: self.open_trades += 1
+
         return self.holdings.positions.setdefault(symbol, Position(
             symbol = symbol,
             security_type = 'EQUITY',
@@ -143,7 +145,7 @@ class Portfolio:
 
         # exiting position
         if abs(position.quantity) < 1e-6:
-            self.total_trades += 1
+            self.closed_trades += 1
             if position.cost < position.value: self.winning_trades += 1
 
             self.holdings.cash += position.value
@@ -154,11 +156,5 @@ class Portfolio:
         history = [holdings.to_dict() for holdings in self.history]
         result = pd.DataFrame(history)
         result.set_index('datetime', inplace = True)
-        result['returns'] = result['capital'].pct_change()
-        result['log_returns'] = np.log(result['capital']).diff()
-        result['equity_curve'] = (1.0 + result['returns']).cumprod()
-        result['total_pnl'] = result['capital'] - result['capital'].iloc[0]
-        result['periodic_pnl'] = result['total_pnl'].diff().fillna(0)
-        result['win_rate'] = self.winning_trades / self.total_trades if self.total_trades > 0 else 0.0
         return result
 

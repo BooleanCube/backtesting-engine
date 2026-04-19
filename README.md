@@ -33,11 +33,10 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 
 ### todo
 
-- [X] fix calmar ratio, drawdowns, and performance.py
-- [X] fix up randomized trading page in terms of data selection and visualization
+- [ ] organize simulation outputs
 - [ ] study up and fix portfolio management for short selling
 - [ ] study up and fix the entire execution handler
-- [X] fix up simulation results to measure quant metrics
+- [ ] measure quant metrics for VaR, kurtosis, skew, and do it for each ticker and the net
 - [ ] store trades info, signaled order vs filled order data, gather info for each ticker
 - [ ] start displaying results on streamlit (review pdf from yt video), write down every plot, info u want displayed for planning
 - [ ] start working on mean reversion pair trading strategy
@@ -46,11 +45,12 @@ The engine utilizes an Event-Driven Architecture to decouple market data, tradin
 ### outputs planning
 
 - simulation runtime
-- strategy metrics: annual return, cumulative return, sharpe, sortino, calmar, VaR, max dd, kurtosis, skew (for each ticker and net)
+- strategy metrics table: annual return, roi, sharpe, sortino, calmar, VaR, max dd, kurtosis, skew (for each ticker and net)
 - positions entered, exited, opened, closed, profitable trades, and win rate (for each ticker and net)
-- drawdowns, durations, max drawdown, max duration
+- net equity curve vs drawdowns (for each ticker and net)
 - equity curve for cumulative returns (for each ticker and net)
-- rolling sharpe (for each ticker and net)
+- rolling sharpe, sortino, calmar (for each ticker and net)
+- sharpe, sortino, calmar curves (for each ticker and net)
 - enters/exits on trades (graphed over prices, spread, and z-score)
 - total pnl and point pnl distribution and line graphs
 - log returns distribution and line graphs
